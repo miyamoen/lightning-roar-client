@@ -27,7 +27,7 @@ userFeedEntry =
         |> required "title" string
         |> required "summary" string
         |> required "link" string
-        |> required "updated" date
+        |> required "updated" string
 
 
 userFeedEntries : Decoder (List UserFeedEntry)
@@ -35,6 +35,6 @@ userFeedEntries =
     list userFeedEntry
 
 
-date : Decoder date
-date =
-    Debug.crash "TODO"
+-- date : Decoder date
+-- date =
+--     Debug.crash "TODO"

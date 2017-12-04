@@ -1,12 +1,23 @@
 module Worker.Types exposing (..)
 
 import Time exposing (Time)
+import Types exposing (..)
+import Http
+
+
+type alias Flags =
+    { rootPath : String }
 
 
 type alias Model =
-    { content : String }
+    { rootPath : String
+    , token : String
+    , entries : List UserFeedEntry
+    }
 
 
 type Msg
     = NoOp
-    | Tick Time
+    | AcceptToken String
+    | UpdateFeed
+    | AcceptMyFeedResponse (Result Http.Error (List UserFeedEntry))

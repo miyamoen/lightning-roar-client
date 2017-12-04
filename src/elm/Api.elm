@@ -1,4 +1,4 @@
-module Api exposing (..)
+module Api exposing (fetchAllFeeds, fetchMyFeed, Setting)
 
 import Http
 import HttpBuilder exposing (..)
@@ -10,20 +10,25 @@ import Task exposing (Task)
 import Debug
 
 
-fetchAllFeeds : Task Http.Error (List Feed)
-fetchAllFeeds =
-    request Get [ "roar", "feeds" ]
-        |> withBase
+fetchAllFeeds : Setting a -> Task Http.Error (List Feed)
+fetchAllFeeds setting =
+    request setting Get [ "roar", "feeds" ]
         |> withDecoder Decoder.feeds
         |> toTask
 
 
-fetchMyFeeds : Task Http.Error (List UserFeedEntry)
-fetchMyFeeds =
-    request Get [ "roar", "feed", "all" ]
-        |> withBase
+fetchMyFeed : Setting a -> Task Http.Error (List UserFeedEntry)
+fetchMyFeed setting =
+    request setting Get [ "roar", "feed", "all" ]
         |> withDecoder Decoder.userFeedEntries
         |> toTask
+
+
+type alias Setting a =
+    { a
+        | rootPath : String
+        , token : String
+    }
 
 
 type Method
@@ -33,37 +38,36 @@ type Method
     | Delete
 
 
-request : Method -> List String -> RequestBuilder ()
-request method paths =
-    let
-        url_ =
-            url paths
-    in
-        case method of
-            Get ->
-                HttpBuilder.get url_
-
-            Post ->
-                HttpBuilder.post url_
-
-            Put ->
-                HttpBuilder.put url_
-
-            Delete ->
-                HttpBuilder.delete url_
+request : Setting a -> Method -> List String -> RequestBuilder ()
+request { rootPath, token } method paths =
+    String.join "/" (rootPath :: paths)
+        |> methodBuilder method
+        |> withBase token
 
 
-url : List String -> String
-url paths =
-    String.join "/" paths
-        |> String.cons '/'
+methodBuilder : Method -> String -> RequestBuilder ()
+methodBuilder method url =
+    case method of
+        Get ->
+            HttpBuilder.get url
+
+        Post ->
+            HttpBuilder.post url
+
+        Put ->
+            HttpBuilder.put url
+
+        Delete ->
+            HttpBuilder.delete url
 
 
-withBase : RequestBuilder a -> RequestBuilder a
-withBase builder =
+withBase : String -> RequestBuilder a -> RequestBuilder a
+withBase token builder =
     builder
-        |> withHeaders [ "Accept" => "application/json" ]
         |> withCredentials
+        |> withHeaders
+            [ "Accept" => "application/json"
+            ]
 
 
 withDecoder : Json.Decode.Decoder a -> RequestBuilder igonore -> RequestBuilder a

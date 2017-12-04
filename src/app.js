@@ -4,6 +4,10 @@ const {app, BrowserWindow, shell, Menu, Tray} = require('electron')
 const ipc = require('electron').ipcMain
 const Elm = require('./elm_worker.js')
 
+const rootPath = "htt://localhost:3000/roar"
+// Enables XMLHttpRequest (required by elm-lang/http) in node environment
+global.XMLHttpRequest = require('xhr2').XMLHttpRequest
+
 let mainWindow = null
 let signInWindow = null
 let tray = null
@@ -14,7 +18,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('ready', () => {
-    worker = Elm.Worker.Main.worker()
+    worker = Elm.Worker.Main.worker({rootPath: rootPath})
     tray = new Tray(path.join(__dirname, '..', 'resources', 'icon.png'))
     tray.setContextMenu(Menu.buildFromTemplate([{
         label: 'Quit Lightning Roar',
@@ -89,17 +93,16 @@ const createSignInWindow = () => {
         useContentSize: true
     })
     window.loadURL(url.format({
-        pathname: path.join('localhost:3000', 'my', 'signIn'),
-        protocol: 'http:',
-        slashes: true
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: path.join('my', 'signIn'),
     }))
 
     window.webContents.on('did-get-redirect-request', (e, oldUrl, newUrl, isMain, httpResponseCode, requestMethod, referrer, headers) => {
         const token = getBouncrToken(headers)
         if (isMain && newUrl.startsWith('http://localhost:3000/') && token) {
-            console.log(token)
-
-            // workerにtokenわたす
+            worker.ports.acceptToken.send(token)
             window.destroy()
         }
     })

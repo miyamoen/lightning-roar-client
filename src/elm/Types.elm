@@ -21,5 +21,5 @@ type alias UserFeedEntry =
     , title : String
     , summary : String
     , link : String
-    , updated : Date
+    , updated : String
     }

@@ -1,23 +1,32 @@
-module Worker.Main exposing (..)
+port module Worker.Main exposing (..)
 
 import Time
 import Rocket exposing ((=>), batchInit, batchUpdate)
 import Worker.Types exposing (..)
-import Debug
+import Worker.Request exposing (..)
+import Json.Decode
+import Debug exposing (log)
 
 
-main : Program Never Model Msg
+port acceptToken : (String -> msg) -> Sub msg
+
+
+main : Program Flags Model Msg
 main =
-    Platform.program
-        { init = init |> batchInit
+    Platform.programWithFlags
+        { init = init >> batchInit
         , update = update >> batchUpdate
         , subscriptions = subscriptions
         }
 
 
-init : ( Model, List (Cmd Msg) )
-init =
-    { content = "hello, electron + elm + worker" } => []
+init : Flags -> ( Model, List (Cmd Msg) )
+init { rootPath } =
+    { rootPath = rootPath
+    , token = ""
+    , entries = []
+    }
+        => []
 
 
 update : Msg -> Model -> ( Model, List (Cmd Msg) )
@@ -26,14 +35,26 @@ update msg model =
         NoOp ->
             model => []
 
-        Tick time ->
+        AcceptToken token ->
+            { model | token = Debug.log "token mya-" token } => []
+
+        UpdateFeed ->
+            log "dedede" model => [ myFeedRequest model ]
+
+        AcceptMyFeedResponse (Ok entries) ->
+            { model | entries = Debug.log "mya-" entries } => []
+
+        AcceptMyFeedResponse (Err error) ->
             let
                 _ =
-                    Debug.log "time" time
+                    Debug.log "error nya" error
             in
                 model => []
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every (5 * Time.second) Tick
+    Sub.batch
+        [ acceptToken AcceptToken
+        , Time.every (20 * Time.second) <| always UpdateFeed
+        ]
