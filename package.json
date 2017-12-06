@@ -3,8 +3,11 @@
     "version": "1.0.0",
     "main": "./src/app.js",
     "author": "miyamoen",
-    "license": "EPL",
-    "devDependencies": {},
+    "license": "EPL-1.0",
+    "devDependencies": {
+        "electron": "^1.7.9",
+        "elm": "^0.18.0"
+    },
     "scripts": {
         "build:renderer": "elm-make src/elm/Renderer/Main.elm --output=src/elm_renderer.js",
         "build:worker": "elm-make src/elm/Worker/Main.elm --output=src/elm_worker.js",

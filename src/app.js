@@ -1,14 +1,15 @@
 const path = require('path')
 const url = require('url')
-const {app, BrowserWindow, shell, Menu, Tray} = require('electron')
+const {app, BrowserWindow, shell, Menu, Tray, session} = require('electron')
 const ipc = require('electron').ipcMain
 const Elm = require('./elm_worker.js')
 
-const rootPath = "htt://localhost:3000/roar"
+
 // Enables XMLHttpRequest (required by elm-lang/http) in node environment
 global.XMLHttpRequest = require('xhr2').XMLHttpRequest
 
 let mainWindow = null
+let workerWindow = null
 let signInWindow = null
 let tray = null
 let worker = null
@@ -18,7 +19,6 @@ app.on('window-all-closed', () => {
 })
 
 app.on('ready', () => {
-    worker = Elm.Worker.Main.worker({rootPath: rootPath})
     tray = new Tray(path.join(__dirname, '..', 'resources', 'icon.png'))
     tray.setContextMenu(Menu.buildFromTemplate([{
         label: 'Quit Lightning Roar',
@@ -48,10 +48,41 @@ app.on('ready', () => {
         mainWindow = null
     })
 
+    workerWindow = createWorkerWindow()
+    workerWindow.on('closed', () => {
+        workerWindow = null
+    })
+
     signInWindow = createSignInWindow()
     signInWindow.on('closed', () => {
         console.log('close nya')
         signInWindow = null
+    })
+    signInWindow.webContents.on('did-finish-load', () => {
+        signInWindow.webContents.session.cookies.get({
+                name: 'BOUNCR_TOKEN',
+                domain: 'localhost'
+            },
+            (error, cookies) => {
+                console.log('nuuuuuuuuuu')
+                console.log(error, cookies)
+                const cookie = cookies[0]
+                if (cookie) {
+                    cookie.hostOnly = false
+                    cookie.httpOnly = false
+                    cookie.session = false
+                    cookie.domain = "worker"
+                    // cookie.secure = true
+                    cookie.url = 'file://c:/work/lightning-roar-client/src/worker.html'
+                    console.log(cookie)
+
+                    workerWindow.webContents.session.cookies.set(cookie, (er) => {
+                        console.log("session set error ", er)
+                    })
+
+                    signInWindow.destroy()
+                }
+            })
     })
     // shell.openExternal('http://electron.atom.io')
 })
@@ -71,13 +102,34 @@ const createMainWindow = () => {
         useContentSize: true
     })
     window.loadURL(url.format({
-        pathname: path.join(__dirname, 'index.html'),
+        pathname: path.join(__dirname, 'renderer.html'),
         protocol: 'file:',
         slashes: true
     }))
     return window
 }
 
+const createWorkerWindow = () => {
+    const window = new BrowserWindow({
+        // closable: false,
+        // focusable: false,
+        // resizable: false,
+        // skipTaskbar: true,
+        // transparent: true,
+        width: 1000,
+        height: 1000,
+        // frame: false,
+        // show: false,
+        icon: path.join(__dirname, '..', 'resources', 'icon.png'),
+        backgroundColor: '#ccc',
+    })
+    window.loadURL(url.format({
+        pathname: path.join(__dirname, 'worker.html'),
+        protocol: 'file:',
+        slashes: true
+    }))
+    return window
+}
 
 const createSignInWindow = () => {
     const window = new BrowserWindow({
@@ -99,13 +151,8 @@ const createSignInWindow = () => {
         pathname: path.join('my', 'signIn'),
     }))
 
-    window.webContents.on('did-get-redirect-request', (e, oldUrl, newUrl, isMain, httpResponseCode, requestMethod, referrer, headers) => {
-        const token = getBouncrToken(headers)
-        if (isMain && newUrl.startsWith('http://localhost:3000/') && token) {
-            worker.ports.acceptToken.send(token)
-            window.destroy()
-        }
-    })
+
+
 
     return window
 }
