@@ -14,9 +14,7 @@ let signInWindow = null
 let tray = null
 let worker = null
 
-app.on('window-all-closed', () => {
-
-})
+app.on('window-all-closed', () => {})
 
 app.on('ready', () => {
     tray = new Tray(path.join(__dirname, '..', 'resources', 'icon.png'))
@@ -49,6 +47,7 @@ app.on('ready', () => {
     })
 
     workerWindow = createWorkerWindow()
+    workerWindow.webContents.openDevTools()
     workerWindow.on('closed', () => {
         workerWindow = null
     })
@@ -64,22 +63,21 @@ app.on('ready', () => {
                 domain: 'localhost'
             },
             (error, cookies) => {
-                console.log('nuuuuuuuuuu')
-                console.log(error, cookies)
                 const cookie = cookies[0]
                 if (cookie) {
-                    cookie.hostOnly = false
-                    cookie.httpOnly = false
-                    cookie.session = false
-                    cookie.domain = "worker"
-                    // cookie.secure = true
-                    cookie.url = 'file://c:/work/lightning-roar-client/src/worker.html'
                     console.log(cookie)
 
-                    workerWindow.webContents.session.cookies.set(cookie, (er) => {
-                        console.log("session set error ", er)
-                    })
 
+                    // workerWindow.webContents.session.cookies.set({
+                    session.defaultSession.cookies.set({
+                            url: "http://localhost:3000",
+                            name: cookie.name,
+                            value: cookie.value
+                        }, error => {
+                            if (error) {
+                                console.log(error)
+                            }
+                        })
                     signInWindow.destroy()
                 }
             })

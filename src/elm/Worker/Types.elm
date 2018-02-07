@@ -11,13 +11,11 @@ type alias Flags =
 
 type alias Model =
     { rootPath : String
-    , token : String
     , entries : List UserFeedEntry
     }
 
 
 type Msg
     = NoOp
-    | AcceptToken String
     | UpdateFeed
     | AcceptMyFeedResponse (Result Http.Error (List UserFeedEntry))

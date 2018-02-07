@@ -7,28 +7,24 @@ import Decoder
 import Types exposing (..)
 import Rocket exposing ((=>))
 import Task exposing (Task)
-import Debug
 
 
 fetchAllFeeds : Setting a -> Task Http.Error (List Feed)
 fetchAllFeeds setting =
-    request setting Get [ "roar", "feeds" ]
+    request setting Get [ "feeds" ]
         |> withDecoder Decoder.feeds
         |> toTask
 
 
 fetchMyFeed : Setting a -> Task Http.Error (List UserFeedEntry)
 fetchMyFeed setting =
-    request setting Get [ "roar", "feed", "all" ]
+    request setting Get [ "feed", "all" ]
         |> withDecoder Decoder.userFeedEntries
         |> toTask
 
 
 type alias Setting a =
-    { a
-        | rootPath : String
-        , token : String
-    }
+    { a | rootPath : String }
 
 
 type Method
@@ -39,10 +35,10 @@ type Method
 
 
 request : Setting a -> Method -> List String -> RequestBuilder ()
-request { rootPath, token } method paths =
+request { rootPath } method paths =
     String.join "/" (rootPath :: paths)
         |> methodBuilder method
-        |> withBase token
+        |> withBase
 
 
 methodBuilder : Method -> String -> RequestBuilder ()
@@ -61,13 +57,11 @@ methodBuilder method url =
             HttpBuilder.delete url
 
 
-withBase : String -> RequestBuilder a -> RequestBuilder a
-withBase token builder =
+withBase : RequestBuilder a -> RequestBuilder a
+withBase builder =
     builder
         |> withCredentials
-        |> withHeaders
-            [ "Accept" => "application/json"
-            ]
+        |> withHeaders [ "Accept" => "application/json" ]
 
 
 withDecoder : Json.Decode.Decoder a -> RequestBuilder igonore -> RequestBuilder a

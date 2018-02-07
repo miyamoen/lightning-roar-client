@@ -1,4 +1,4 @@
-port module Worker.Main exposing (..)
+module Worker.Main exposing (..)
 
 import Time
 import Rocket exposing ((=>), batchInit, batchUpdate)
@@ -6,9 +6,6 @@ import Worker.Types exposing (..)
 import Worker.Request exposing (..)
 import Json.Decode
 import Debug exposing (log)
-
-
-port acceptToken : (String -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg
@@ -23,7 +20,6 @@ main =
 init : Flags -> ( Model, List (Cmd Msg) )
 init { rootPath } =
     { rootPath = rootPath
-    , token = ""
     , entries = []
     }
         => []
@@ -34,9 +30,6 @@ update msg model =
     case msg of
         NoOp ->
             model => []
-
-        AcceptToken token ->
-            { model | token = Debug.log "token mya-" token } => []
 
         UpdateFeed ->
             log "dedede" model => [ myFeedRequest model ]
@@ -55,6 +48,4 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ acceptToken AcceptToken
-        , Time.every (20 * Time.second) <| always UpdateFeed
-        ]
+        [ Time.every (30 * Time.second) <| always UpdateFeed ]

@@ -1,3 +1,3 @@
-const ipc = require('electron').ipcRenderer
+const ipc = require("electron").ipcRenderer;
 
-const app = module.exports.Renderer.Main.fullscreen()
+const app = module.exports.Renderer.Main.fullscreen();
