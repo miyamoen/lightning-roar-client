@@ -1,170 +1,63 @@
-const path = require('path')
-const url = require('url')
-const {app, BrowserWindow, shell, Menu, Tray, session} = require('electron')
-const ipc = require('electron').ipcMain
-const Elm = require('./elm_worker.js')
+const { app, shell, session } = require("electron")
+const ipc = require("electron").ipcMain
 
+const trayCreate = require("./tray.js").create
+const createWindow = require("./create_window.js")
 
-// Enables XMLHttpRequest (required by elm-lang/http) in node environment
-global.XMLHttpRequest = require('xhr2').XMLHttpRequest
-
-let mainWindow = null
+let rendererWindow = null
 let workerWindow = null
 let signInWindow = null
 let tray = null
 let worker = null
 
-app.on('window-all-closed', () => {})
+app.on("window-all-closed", () => {})
 
-app.on('ready', () => {
-    tray = new Tray(path.join(__dirname, '..', 'resources', 'icon.png'))
-    tray.setContextMenu(Menu.buildFromTemplate([{
-        label: 'Quit Lightning Roar',
-        click: function() {
-            app.quit()
-        }
-    },
-    ]))
-    tray.setToolTip('Lightning Roar')
-    tray.on('double-click', (e, b) => {
-        if (e.altKey) {
-            app.quit()
-        } else {
-            if (mainWindow) {
-                mainWindow.show()
-            } else {
-                mainWindow = createMainWindow()
-                mainWindow.on('closed', () => {
-                    mainWindow = null
-                })
-            }
-        }
-    })
+app.on("ready", () => {
+  tray = trayCreate(app, () => {
+    if (rendererWindow) {
+      rendererWindow.show()
+    } else {
+      rendererWindow = createWindow.renderer()
+      rendererWindow.on("closed", () => (rendererWindow = null))
+    }
+  })
 
-    mainWindow = createMainWindow()
-    mainWindow.on('closed', () => {
-        mainWindow = null
-    })
+  rendererWindow = createWindow.renderer()
+  rendererWindow.on("closed", () => (rendererWindow = null))
 
-    workerWindow = createWorkerWindow()
-    workerWindow.webContents.openDevTools()
-    workerWindow.on('closed', () => {
-        workerWindow = null
-    })
+  workerWindow = createWindow.worker()
+  workerWindow.webContents.openDevTools()
+  workerWindow.on("closed", () => (workerWindow = null))
 
-    signInWindow = createSignInWindow()
-    signInWindow.on('closed', () => {
-        console.log('close nya')
-        signInWindow = null
-    })
-    signInWindow.webContents.on('did-finish-load', () => {
-        signInWindow.webContents.session.cookies.get({
-                name: 'BOUNCR_TOKEN',
-                domain: 'localhost'
+  signInWindow = createWindow.signIn()
+  signInWindow.on("closed", () => (signInWindow = null))
+  signInWindow.webContents.on("did-finish-load", () => {
+    signInWindow.webContents.session.cookies.get(
+      {
+        name: "BOUNCR_TOKEN",
+        domain: "localhost"
+      },
+      (error, cookies) => {
+        const cookie = cookies[0]
+        if (cookie) {
+          console.log(cookie)
+
+          session.defaultSession.cookies.set(
+            {
+              url: "http://localhost:3000",
+              name: cookie.name,
+              value: cookie.value
             },
-            (error, cookies) => {
-                const cookie = cookies[0]
-                if (cookie) {
-                    console.log(cookie)
-
-
-                    // workerWindow.webContents.session.cookies.set({
-                    session.defaultSession.cookies.set({
-                            url: "http://localhost:3000",
-                            name: cookie.name,
-                            value: cookie.value
-                        }, error => {
-                            if (error) {
-                                console.log(error)
-                            }
-                        })
-                    signInWindow.destroy()
-                }
-            })
-    })
-    // shell.openExternal('http://electron.atom.io')
+            error => {
+              if (error) {
+                console.log(error)
+              }
+            }
+          )
+          signInWindow.destroy()
+        }
+      }
+    )
+  })
+  // shell.openExternal('http://electron.atom.io')
 })
-
-
-const createMainWindow = () => {
-    const window = new BrowserWindow({
-        width: 800,
-        height: 600,
-        icon: path.join(__dirname, '..', 'resources', 'icon.png'),
-        transparent: false,
-        frame: true,
-        backgroundColor: '#ccc',
-        resizable: true,
-        skipTaskbar: false,
-        autoHideMenuBar: true,
-        useContentSize: true
-    })
-    window.loadURL(url.format({
-        pathname: path.join(__dirname, 'renderer.html'),
-        protocol: 'file:',
-        slashes: true
-    }))
-    return window
-}
-
-const createWorkerWindow = () => {
-    const window = new BrowserWindow({
-        // closable: false,
-        // focusable: false,
-        // resizable: false,
-        // skipTaskbar: true,
-        // transparent: true,
-        width: 1000,
-        height: 1000,
-        // frame: false,
-        // show: false,
-        icon: path.join(__dirname, '..', 'resources', 'icon.png'),
-        backgroundColor: '#ccc',
-    })
-    window.loadURL(url.format({
-        pathname: path.join(__dirname, 'worker.html'),
-        protocol: 'file:',
-        slashes: true
-    }))
-    return window
-}
-
-const createSignInWindow = () => {
-    const window = new BrowserWindow({
-        width: 800,
-        height: 600,
-        icon: path.join(__dirname, '..', 'resources', 'icon.png'),
-        transparent: false,
-        frame: true,
-        backgroundColor: '#ccc',
-        resizable: true,
-        skipTaskbar: false,
-        autoHideMenuBar: true,
-        useContentSize: true
-    })
-    window.loadURL(url.format({
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: path.join('my', 'signIn'),
-    }))
-
-
-
-
-    return window
-}
-
-const getBouncrToken = headers => {
-    const cookies = headers['set-cookie']
-    if (!cookies) { return null }
-
-    const tokenString = cookies.filter(cookie => cookie.startsWith('BOUNCR_TOKEN='))[0]
-    if (!tokenString) { return null }
-
-    const p = /^BOUNCR_TOKEN=[A-Za-z0-9-]+(?=;)/
-    const res = tokenString.match(p)
-    if (!res) { return null }
-
-    return res[0].substring(13)
-}
