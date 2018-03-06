@@ -5,8 +5,6 @@ const ipc = require('electron').ipcMain
 const Elm = require('./elm_worker.js')
 
 
-// Enables XMLHttpRequest (required by elm-lang/http) in node environment
-global.XMLHttpRequest = require('xhr2').XMLHttpRequest
 
 let mainWindow = null
 let workerWindow = null
