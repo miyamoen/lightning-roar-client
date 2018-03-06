@@ -1,7 +1,7 @@
 module Decoder exposing (..)
 
-import Json.Decode exposing (int, string, float, list, Decoder)
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode exposing (Decoder, float, int, list, string)
+import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required)
 import Types exposing (..)
 
 
@@ -33,6 +33,7 @@ userFeedEntry =
 userFeedEntries : Decoder (List UserFeedEntry)
 userFeedEntries =
     list userFeedEntry
+
 
 
 -- date : Decoder date

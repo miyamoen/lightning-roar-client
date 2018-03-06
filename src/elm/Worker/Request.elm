@@ -1,11 +1,17 @@
 module Worker.Request exposing (..)
 
+import Api exposing (..)
 import Task
 import Worker.Types exposing (..)
-import Api exposing (..)
 
 
-myFeedRequest : Setting a -> Cmd Msg
-myFeedRequest setting =
-    fetchMyFeed setting
-        |> Task.attempt AcceptMyFeedResponse
+myFeed : Setting a -> Cmd Msg
+myFeed setting =
+    fetchIssues setting
+        |> Task.attempt AcceptEntriesResponse
+
+
+allFeeds : Setting a -> Cmd Msg
+allFeeds setting =
+    fetchAllFeeds setting
+        |> Task.attempt AcceptFeedsResponse

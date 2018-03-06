@@ -5,7 +5,6 @@ import Date exposing (Date)
 
 type alias Id =
     Int
-    
 
 
 type alias Feed =

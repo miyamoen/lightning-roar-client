@@ -1,12 +1,12 @@
-module Api exposing (fetchAllFeeds, fetchMyFeed, Setting)
+module Api exposing (Setting, fetchAllFeeds, fetchIssues)
 
+import Decoder
 import Http
 import HttpBuilder exposing (..)
 import Json.Decode
-import Decoder
-import Types exposing (..)
 import Rocket exposing ((=>))
 import Task exposing (Task)
+import Types exposing (..)
 
 
 fetchAllFeeds : Setting a -> Task Http.Error (List Feed)
@@ -16,8 +16,8 @@ fetchAllFeeds setting =
         |> toTask
 
 
-fetchMyFeed : Setting a -> Task Http.Error (List UserFeedEntry)
-fetchMyFeed setting =
+fetchIssues : Setting a -> Task Http.Error (List UserFeedEntry)
+fetchIssues setting =
     request setting Get [ "feed", "all" ]
         |> withDecoder Decoder.userFeedEntries
         |> toTask

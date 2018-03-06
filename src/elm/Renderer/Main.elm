@@ -1,8 +1,8 @@
 module Renderer.Main exposing (..)
 
 import Html exposing (Html)
-import Rocket exposing ((=>), batchInit, batchUpdate)
 import Renderer.Types exposing (..)
+import Rocket exposing ((=>), batchInit, batchUpdate)
 
 
 main : Program Never Model Msg

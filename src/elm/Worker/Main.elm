@@ -1,11 +1,10 @@
 module Worker.Main exposing (..)
 
-import Time
 import Rocket exposing ((=>), batchInit, batchUpdate)
+import Time
+import Worker.Channel as Channel
+import Worker.Request as Request
 import Worker.Types exposing (..)
-import Worker.Request exposing (..)
-import Json.Decode
-import Debug exposing (log)
 
 
 main : Program Flags Model Msg
@@ -19,10 +18,14 @@ main =
 
 init : Flags -> ( Model, List (Cmd Msg) )
 init { rootPath } =
-    { rootPath = rootPath
-    , entries = []
-    }
-        => []
+    let
+        model =
+            { rootPath = rootPath
+            , entries = []
+            , feeds = []
+            }
+    in
+    model => [ Request.allFeeds model, Request.myFeed model ]
 
 
 update : Msg -> Model -> ( Model, List (Cmd Msg) )
@@ -31,21 +34,36 @@ update msg model =
         NoOp ->
             model => []
 
-        UpdateFeed ->
-            log "dedede" model => [ myFeedRequest model ]
+        UpdateMyFeed ->
+            model => [ Request.myFeed model ]
 
-        AcceptMyFeedResponse (Ok entries) ->
-            { model | entries = Debug.log "mya-" entries } => []
+        UpdateFeeds ->
+            model => [ Request.allFeeds model ]
 
-        AcceptMyFeedResponse (Err error) ->
+        AcceptEntriesResponse (Ok entries) ->
+            { model | entries = Debug.log "entriesだよ" entries }
+                => [ Channel.pushMyFeed entries ]
+
+        AcceptEntriesResponse (Err error) ->
             let
                 _ =
-                    Debug.log "error nya" error
+                    Debug.log "AcceptEntriesResponse error" error
             in
-                model => []
+            model => []
+
+        AcceptFeedsResponse (Ok feeds) ->
+            { model | feeds = Debug.log "feedsだよ" feeds }
+                => [ Channel.pushAllFeeds feeds ]
+
+        AcceptFeedsResponse (Err error) ->
+            let
+                _ =
+                    Debug.log "AcceptFeedsResponse error" error
+            in
+            model => []
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every (30 * Time.second) <| always UpdateFeed ]
+        [ Time.every (30 * Time.second) <| always UpdateMyFeed ]

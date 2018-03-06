@@ -1,8 +1,8 @@
 module Worker.Types exposing (..)
 
+import Http
 import Time exposing (Time)
 import Types exposing (..)
-import Http
 
 
 type alias Flags =
@@ -12,10 +12,13 @@ type alias Flags =
 type alias Model =
     { rootPath : String
     , entries : List UserFeedEntry
+    , feeds : List Feed
     }
 
 
 type Msg
     = NoOp
-    | UpdateFeed
-    | AcceptMyFeedResponse (Result Http.Error (List UserFeedEntry))
+    | UpdateMyFeed
+    | UpdateFeeds
+    | AcceptEntriesResponse (Result Http.Error (List UserFeedEntry))
+    | AcceptFeedsResponse (Result Http.Error (List Feed))
