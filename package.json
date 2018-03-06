@@ -1,16 +1,18 @@
 {
     "name": "lightning-roar-client",
     "version": "1.0.0",
-    "main": "./src/app.js",
+    "main": "./src/js/app.js",
     "author": "miyamoen",
     "license": "EPL-1.0",
     "devDependencies": {
-        "electron": "^1.7.9",
+        "electron": "^2.0.0-beta.2",
         "elm": "^0.18.0"
     },
     "scripts": {
-        "build:renderer": "elm-make src/elm/Renderer/Main.elm --output=resources/elm_renderer.js",
-        "build:worker": "elm-make src/elm/Worker/Main.elm --output=resources/elm_worker.js",
+        "build:renderer":
+            "elm-make src/elm/Renderer/Main.elm --output=resources/elm_renderer.js",
+        "build:worker":
+            "elm-make src/elm/Worker/Main.elm --output=resources/elm_worker.js",
         "start": "electron ."
     },
     "dependencies": {}
