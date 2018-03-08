@@ -2,6 +2,7 @@ module Renderer.Main exposing (..)
 
 import Html exposing (Html)
 import Renderer.Types exposing (..)
+import Renderer.View exposing (view)
 import Rocket exposing ((=>), batchInit, batchUpdate)
 
 
@@ -17,7 +18,10 @@ main =
 
 init : ( Model, List (Cmd Msg) )
 init =
-    { content = "hello, electron + elm" } => []
+    { content = "hello, electron + elm"
+    , feeds = []
+    }
+        => []
 
 
 update : Msg -> Model -> ( Model, List (Cmd Msg) )
@@ -26,10 +30,8 @@ update msg model =
         NoOp ->
             model => []
 
-
-view : Model -> Html Msg
-view { content } =
-    Html.text content
+        ReceiveAllFeeds feeds ->
+            { model | feeds = feeds } => []
 
 
 subscriptions : Model -> Sub Msg

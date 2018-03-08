@@ -1,4 +1,4 @@
-module Api exposing (Setting, fetchAllFeeds, fetchIssues)
+module Api exposing (Setting, fetchAllFeeds, fetchEntries)
 
 import Decoder
 import Http
@@ -16,8 +16,8 @@ fetchAllFeeds setting =
         |> toTask
 
 
-fetchIssues : Setting a -> Task Http.Error (List UserFeedEntry)
-fetchIssues setting =
+fetchEntries : Setting a -> Task Http.Error (List UserFeedEntry)
+fetchEntries setting =
     request setting Get [ "feed", "all" ]
         |> withDecoder Decoder.userFeedEntries
         |> toTask

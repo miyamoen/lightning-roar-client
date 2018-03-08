@@ -7,7 +7,7 @@ import Worker.Types exposing (..)
 
 myFeed : Setting a -> Cmd Msg
 myFeed setting =
-    fetchIssues setting
+    fetchEntries setting
         |> Task.attempt AcceptEntriesResponse
 
 

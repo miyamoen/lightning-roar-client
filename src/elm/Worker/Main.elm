@@ -66,4 +66,5 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every (30 * Time.second) <| always UpdateMyFeed ]
+        [-- Time.every (30 * Time.second) <| always UpdateMyFeed
+        ]
