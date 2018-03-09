@@ -4,44 +4,58 @@ const ipc = require("electron").ipcMain
 const trayCreate = require("./tray.js").create
 const createWindow = require("./create_window.js")
 
-let rendererWindow = null
-let workerWindow = null
+let renderer = null
+let worker = null
 let signInWindow = null
 let tray = null
-let worker = null
 
 app.on("window-all-closed", () => {})
 
 app.on("ready", () => {
     tray = trayCreate(app, () => {
-        if (rendererWindow) {
-            rendererWindow.show()
+        if (renderer) {
+            renderer.show()
         } else {
-            rendererWindow = createWindow.renderer()
-            rendererWindow.on("closed", () => (rendererWindow = null))
+            createRenderer()
         }
     })
 
-    rendererWindow = createWindow.renderer()
-    rendererWindow.on("closed", () => (rendererWindow = null))
+    createWorker()
+    createRenderer()
+    createSignInWindow()
+    // shell.openExternal('http://electron.atom.io')
+})
 
-    workerWindow = createWindow.worker()
-    workerWindow.webContents.openDevTools()
-    workerWindow.on("closed", () => (workerWindow = null))
+function createRenderer() {
+    renderer = createWindow.renderer()
+    renderer.webContents.on("did-finish-load", () => {
+        renderer.webContents.send("workerId", worker.id)
+    })
+    worker.webContents.send("rendererId", renderer.id)
 
-    signInWindow = createWindow.signIn()
+    renderer.on("closed", () => (renderer = null))
+}
+
+function createWorker() {
+    worker = createWindow.worker()
+    worker.webContents.openDevTools()
+    worker.on("closed", () => (worker = null))
+
+    worker.webContents.on("did-finish-load", () => {
+        worker.webContents.send("rendererId", renderer.id)
+    })
+}
+
+function createSignInWindow() {
+    signInWindow = createWindow.signIn(renderer)
     signInWindow.on("closed", () => (signInWindow = null))
+
     signInWindow.webContents.on("did-finish-load", () => {
         signInWindow.webContents.session.cookies.get(
-            {
-                name: "BOUNCR_TOKEN",
-                domain: "localhost"
-            },
+            { name: "BOUNCR_TOKEN" },
             (error, cookies) => {
                 const cookie = cookies[0]
                 if (cookie) {
-                    console.log(cookie)
-
                     session.defaultSession.cookies.set(
                         {
                             url: "http://localhost:3000",
@@ -59,5 +73,4 @@ app.on("ready", () => {
             }
         )
     })
-    // shell.openExternal('http://electron.atom.io')
-})
+}

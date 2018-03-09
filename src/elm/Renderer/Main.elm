@@ -1,6 +1,7 @@
 module Renderer.Main exposing (..)
 
 import Html exposing (Html)
+import Renderer.Channel as Channel
 import Renderer.Types exposing (..)
 import Renderer.View exposing (view)
 import Rocket exposing ((=>), batchInit, batchUpdate)
@@ -36,4 +37,4 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch [ Channel.receiveAllFeeds ReceiveAllFeeds ]

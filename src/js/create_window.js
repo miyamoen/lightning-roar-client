@@ -51,7 +51,7 @@ const worker = () => {
     return window
 }
 
-const signIn = () => {
+const signIn = parant => {
     const window = new BrowserWindow({
         width: 800,
         height: 600,
@@ -62,7 +62,9 @@ const signIn = () => {
         resizable: true,
         skipTaskbar: false,
         autoHideMenuBar: true,
-        useContentSize: true
+        useContentSize: true,
+        parent: parant,
+        modal: true
     })
     window.loadURL(
         url.format({
