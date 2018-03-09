@@ -3,7 +3,6 @@ module Api exposing (Setting, fetchAllFeeds, fetchEntries)
 import Decoder
 import Http
 import HttpBuilder exposing (..)
-import Json.Decode
 import Rocket exposing ((=>))
 import Task exposing (Task)
 import Types exposing (..)
@@ -12,14 +11,14 @@ import Types exposing (..)
 fetchAllFeeds : Setting a -> Task Http.Error (List Feed)
 fetchAllFeeds setting =
     request setting Get [ "feeds" ]
-        |> withDecoder Decoder.feeds
+        |> withExpectJson Decoder.feeds
         |> toTask
 
 
 fetchEntries : Setting a -> Task Http.Error (List UserFeedEntry)
 fetchEntries setting =
     request setting Get [ "feed", "all" ]
-        |> withDecoder Decoder.userFeedEntries
+        |> withExpectJson Decoder.userFeedEntries
         |> toTask
 
 
@@ -62,9 +61,3 @@ withBase builder =
     builder
         |> withCredentials
         |> withHeaders [ "Accept" => "application/json" ]
-
-
-withDecoder : Json.Decode.Decoder a -> RequestBuilder igonore -> RequestBuilder a
-withDecoder decoder builder =
-    builder
-        |> withExpect (Http.expectJson decoder)
