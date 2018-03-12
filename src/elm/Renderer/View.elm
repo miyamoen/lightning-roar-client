@@ -51,9 +51,13 @@ feedItem feed =
 
 icon : String -> Element Styles variation Msg
 icon url =
-    text url
+    decorativeImage None
+        [ width <| px 60
+        , height <| px 60
+        ]
+        { src = url }
 
 
 menu : Model -> Element Styles variations Msg
 menu model =
-    column None [ paddingXY 10 30 ] [ text "Feeds" ]
+    column None [ paddingXY 10 30 ] [ text "Feeds", text "Feeds" ]
