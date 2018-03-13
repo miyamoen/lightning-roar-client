@@ -13,3 +13,7 @@ ipc.on("allFeeds", (event, feeds) => {
 ipc.on("workerId", (event, id) => {
     if (id) workerId = id
 })
+
+app.ports.requestAllFeeds.subscribe(_ => {
+    ipc.sendTo(workerId, "requestAllFeeds")
+})

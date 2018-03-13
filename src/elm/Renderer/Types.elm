@@ -12,3 +12,4 @@ type alias Model =
 type Msg
     = NoOp
     | ReceiveAllFeeds (List Feed)
+    | ReloadFeeds

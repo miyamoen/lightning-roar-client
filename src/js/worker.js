@@ -19,3 +19,7 @@ app.ports.pushAllFeeds.subscribe(feeds => {
 ipc.on("rendererId", (event, id) => {
     if (id) rendererId = id
 })
+
+ipc.on("requestAllFeeds", event => {
+    app.ports.receiveAllFeedsRequest.send(null)
+})

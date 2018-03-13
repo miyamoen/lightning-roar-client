@@ -34,6 +34,9 @@ update msg model =
         ReceiveAllFeeds feeds ->
             { model | feeds = feeds } => []
 
+        ReloadFeeds ->
+            model => [ Channel.requestAllFeeds () ]
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

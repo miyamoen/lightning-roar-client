@@ -22,3 +22,4 @@ type Msg
     | UpdateFeeds
     | AcceptEntriesResponse (Result Http.Error (List UserFeedEntry))
     | AcceptFeedsResponse (Result Http.Error (List Feed))
+    | ReceiveAllFeedsRequest

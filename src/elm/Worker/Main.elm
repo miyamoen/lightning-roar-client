@@ -62,9 +62,13 @@ update msg model =
             in
             model => []
 
+        ReceiveAllFeedsRequest ->
+            model => [ Request.allFeeds model, Channel.pushAllFeeds model.feeds ]
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [-- Time.every (30 * Time.second) <| always UpdateMyFeed
+        [ -- Time.every (30 * Time.second) <| always UpdateMyFeed
+          Channel.receiveAllFeedsRequest (always ReceiveAllFeedsRequest)
         ]

@@ -2,7 +2,7 @@ module Renderer.View exposing (view)
 
 import Element exposing (..)
 import Element.Attributes as Attrs exposing (..)
-import Element.Events exposing (on)
+import Element.Events exposing (on, onClick)
 import Html exposing (Html)
 import Renderer.Styles exposing (Styles(..), styleSheet)
 import Renderer.Types exposing (..)
@@ -33,9 +33,13 @@ frame model =
 
 mainFrame : Model -> Element Styles variations Msg
 mainFrame model =
-    model.feeds
-        |> List.map feedItem
-        |> column None []
+    column None
+        []
+        [ button None [ onClick ReloadFeeds ] <| text "reload"
+        , model.feeds
+            |> List.map feedItem
+            |> column None []
+        ]
 
 
 feedItem : Feed -> Element Styles variations Msg
